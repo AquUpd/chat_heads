@@ -1,39 +1,39 @@
 package dzwdz.chat_heads.mixin;
 
 import dzwdz.chat_heads.ChatHeads;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.chat.StandardChatListener;
-import net.minecraft.client.multiplayer.PlayerInfo;
-import net.minecraft.network.chat.ChatType;
-import net.minecraft.network.chat.Component;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.UUID;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.hud.ChatHudListener;
+import net.minecraft.client.network.PlayerListEntry;
+import net.minecraft.network.MessageType;
+import net.minecraft.text.Text;
 
-@Mixin(StandardChatListener.class)
+@Mixin(ChatHudListener.class)
 public class StandardChatListenerMixin {
     @Inject(
             at = @At("HEAD"),
             method = "handle(Lnet/minecraft/network/chat/ChatType;Lnet/minecraft/network/chat/Component;Ljava/util/UUID;)V"
     )
-    public void onChatMessage(ChatType messageType, Component message, UUID senderUuid, CallbackInfo callbackInfo) {
-        ChatHeads.lastSender = Minecraft.getInstance().getConnection().getPlayerInfo(senderUuid);
+    public void onChatMessage(MessageType messageType, Text message, UUID senderUuid, CallbackInfo callbackInfo) {
+        ChatHeads.lastSender = MinecraftClient.getInstance().getNetworkHandler().getPlayerListEntry(senderUuid);
         String textString = message.getString();
         if (ChatHeads.lastSender == null) {
             for (String part : textString.split("(§.)|[^\\w]")) {
                 if (part.isEmpty()) continue;
-                PlayerInfo p = Minecraft.getInstance().getConnection().getPlayerInfo(part);
+                PlayerListEntry p = MinecraftClient.getInstance().getNetworkHandler().getPlayerListEntry(part);
                 if (p != null) {
                     ChatHeads.lastSender = p;
                     return;
                 }
             }
         }
-        for (PlayerInfo p: Minecraft.getInstance().getConnection().getOnlinePlayers()) {
-            Component displayName = p.getTabListDisplayName();
+        for (PlayerListEntry p: MinecraftClient.getInstance().getNetworkHandler().getPlayerList()) {
+            Text displayName = p.getDisplayName();
             if (displayName != null && textString.contains(displayName.getString())) {
                 ChatHeads.lastSender = p;
                 return;

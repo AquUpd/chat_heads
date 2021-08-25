@@ -1,14 +1,14 @@
 package dzwdz.chat_heads;
 
-import net.minecraft.client.GuiMessage;
-import net.minecraft.client.multiplayer.PlayerInfo;
+import net.minecraft.client.gui.hud.ChatHudLine;
+import net.minecraft.client.network.PlayerListEntry;
 import org.jetbrains.annotations.Nullable;
 
 public class ChatHeads {
     @Nullable
-    public static PlayerInfo lastSender;
+    public static PlayerListEntry lastSender;
     @Nullable
-    public static GuiMessage<?> lastGuiMessage;
+    public static ChatHudLine<?> lastGuiMessage;
 
     public static int lastY = 0;
     public static float lastOpacity = 0;

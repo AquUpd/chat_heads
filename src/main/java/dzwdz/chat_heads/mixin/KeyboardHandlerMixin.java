@@ -1,13 +1,13 @@
 package dzwdz.chat_heads.mixin;
 
 import dzwdz.chat_heads.ChatHeads;
-import net.minecraft.client.KeyboardHandler;
+import net.minecraft.client.Keyboard;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(KeyboardHandler.class)
+@Mixin(Keyboard.class)
 public class KeyboardHandlerMixin {
     @Inject(
             at = @At("HEAD"),

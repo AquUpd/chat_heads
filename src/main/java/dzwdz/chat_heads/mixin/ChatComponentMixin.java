@@ -1,24 +1,24 @@
 package dzwdz.chat_heads.mixin;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import dzwdz.chat_heads.ChatHeads;
 import dzwdz.chat_heads.mixinterface.GuiMessageOwnerAccessor;
-import net.minecraft.client.GuiMessage;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiComponent;
-import net.minecraft.client.gui.components.ChatComponent;
-import net.minecraft.client.multiplayer.PlayerInfo;
-import net.minecraft.util.FormattedCharSequence;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.DrawableHelper;
+import net.minecraft.client.gui.hud.ChatHud;
+import net.minecraft.client.gui.hud.ChatHudLine;
+import net.minecraft.client.network.PlayerListEntry;
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.text.OrderedText;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(ChatComponent.class)
+@Mixin(ChatHud.class)
 public abstract class ChatComponentMixin {
-    @Shadow @Final private Minecraft minecraft;
+    @Shadow @Final private MinecraftClient minecraft;
 
     @ModifyArg(
             at = @At(
@@ -29,7 +29,7 @@ public abstract class ChatComponentMixin {
             method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;I)V",
             index = 2
     )
-    public float moveTheText(PoseStack poseStack, FormattedCharSequence formattedCharSequence, float f, float y, int color) {
+    public float moveTheText(MatrixStack poseStack, OrderedText formattedCharSequence, float f, float y, int color) {
         ChatHeads.lastY = (int)y;
         ChatHeads.lastOpacity = (((color >> 24) + 256) % 256) / 255f; // haha yes
         return ChatHeads.CHAT_OFFSET;
@@ -42,7 +42,7 @@ public abstract class ChatComponentMixin {
             ),
             method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;I)V"
     )
-    public GuiMessage<?> captureGuiMessage(GuiMessage<?> guiMessage) {
+    public ChatHudLine<?> captureGuiMessage(ChatHudLine<?> guiMessage) {
         ChatHeads.lastGuiMessage = guiMessage;
         return guiMessage;
     }
@@ -55,15 +55,15 @@ public abstract class ChatComponentMixin {
             ),
             method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;I)V"
     )
-    public void render(PoseStack matrixStack, int i, CallbackInfo ci) {
-        PlayerInfo owner = ((GuiMessageOwnerAccessor)ChatHeads.lastGuiMessage).chatheads$getOwner();
+    public void render(MatrixStack matrixStack, int i, CallbackInfo ci) {
+        PlayerListEntry owner = ((GuiMessageOwnerAccessor)ChatHeads.lastGuiMessage).chatheads$getOwner();
         if (owner != null) {
             RenderSystem.setShaderColor(1, 1, 1, ChatHeads.lastOpacity);
-            RenderSystem.setShaderTexture(0, owner.getSkinLocation());
+            RenderSystem.setShaderTexture(0, owner.getSkinTexture());
             // draw base layer
-            GuiComponent.blit(matrixStack, 0, ChatHeads.lastY, 8, 8, 8.0F, 8, 8, 8, 64, 64);
+            DrawableHelper.drawTexture(matrixStack, 0, ChatHeads.lastY, 8, 8, 8.0F, 8, 8, 8, 64, 64);
             // draw hat
-            GuiComponent.blit(matrixStack, 0, ChatHeads.lastY, 8, 8, 40.0F, 8, 8, 8, 64, 64);
+            DrawableHelper.drawTexture(matrixStack, 0, ChatHeads.lastY, 8, 8, 40.0F, 8, 8, 8, 64, 64);
             RenderSystem.setShaderColor(1, 1, 1, 1);
         }
     }
@@ -87,8 +87,8 @@ public abstract class ChatComponentMixin {
             ),
             method = "addMessage(Lnet/minecraft/network/chat/Component;IIZ)V"
     )
-    public int fixTextOverflow(ChatComponent chatHud) {
-        return ChatComponent.getWidth(minecraft.options.chatWidth) - ChatHeads.CHAT_OFFSET;
+    public int fixTextOverflow(ChatHud chatHud) {
+        return ChatHud.getWidth(minecraft.options.chatWidth) - ChatHeads.CHAT_OFFSET;
     }
 
     @Inject(

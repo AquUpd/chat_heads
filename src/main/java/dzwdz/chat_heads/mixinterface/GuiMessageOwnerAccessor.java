@@ -1,7 +1,7 @@
 package dzwdz.chat_heads.mixinterface;
 
-import net.minecraft.client.multiplayer.PlayerInfo;
+import net.minecraft.client.network.PlayerListEntry;
 
 public interface GuiMessageOwnerAccessor {
-    PlayerInfo chatheads$getOwner();
+    PlayerListEntry chatheads$getOwner();
 }
